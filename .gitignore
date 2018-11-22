@@ -1,5 +1,10 @@
 .vscode/
-.DS_Store
+
+# LIWC related plaintext
+train_liwc_result.txt
+valid_liwc_result.txt
+test_liwc_result.txt
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
