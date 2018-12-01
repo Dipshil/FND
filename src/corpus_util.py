@@ -10,6 +10,23 @@ def read_data(file_path):
     return data
 
 
+def split_data():
+    train_data = read_data(TRAIN_PATH)
+    test_data = read_data(TEST_PATH)
+    valid_data = read_data(VALID_PATH)
+    
+    for i, line in enumerate(train_data):
+        with open("../data/split/train/text%d.txt" % i, 'w') as f:
+            f.write(line)
+
+    for i, line in enumerate(test_data):
+        with open("../data/split/test/text%d.txt" % i, 'w') as f:
+            f.write(line)
+
+    for i, line in enumerate(valid_data):
+        with open("../data/split/valid/text%d.txt" % i, 'w') as f:
+            f.write(line)
+
 def write_data(data, file_path):
     with open(file_path, 'w') as f:
         for line in data:
@@ -25,6 +42,8 @@ def main():
     write_data(train_data, TRAIN_RES_PATH)
     write_data(test_data, TEST_RES_PATH)
     write_data(valid_data, VALID_RES_PATH)
+
+    split_data()
 
 
 if __name__ == "__main__":
