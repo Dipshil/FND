@@ -22,14 +22,21 @@ class BiLSTM(nn.Module):
 
     def init_hidden(self):
 
-        return (torch.zeros(2, 1, self.hidden_dim // 2).cuda(), torch.zeros(2, 1, self.hidden_dim // 2).cuda())
+        # return (torch.zeros(2, 1, self.hidden_dim // 2).cuda(), torch.zeros(2, 1, self.hidden_dim // 2).cuda())
+        return (torch.zeros(1, 1, self.hidden_dim).cuda(), torch.zeros(1, 1, self.hidden_dim).cuda())
 
 
     def forward(self, sentence):
 
-        embeds = self.word_embeddings(sentence).cuda()
-        lstm_out, self.hidden = self.lstm(embeds.view(len(sentence), 1, -1), self.hidden)
-        label_space = self.hidden2tag(lstm_out.view(len(sentence), -1)).cuda()
+        # embeds = self.word_embeddings(sentence).cuda()
+        embeds = torch.mean(self.word_embeddings(sentence).cuda(), dim=0)
+
+        # lstm_out, self.hidden = self.lstm(embeds.view(len(sentence), 1, -1), self.hidden)
+        # label_space = self.hidden2tag(lstm_out.view(len(sentence), -1)).cuda()
+
+        lstm_out, self.hidden = self.lstm(embeds.view(1, 1, -1), self.hidden)
+
+        label_space = self.hidden2tag(lstm_out.view(1, -1)).cuda()
         label_scores = F.log_softmax(label_space, dim=1).cuda()
 
         return label_scores
@@ -61,7 +68,9 @@ class BiLSTM(nn.Module):
     def init_model(self):
 
         self.word_embeddings = nn.Embedding(len(self.word_to_ix), self.embedding_dim).cuda()
-        self.lstm = nn.LSTM(self.embedding_dim, self.hidden_dim // 2, num_layers=1, bidirectional=True).cuda()
+        # self.lstm = nn.LSTM(self.embedding_dim, self.hidden_dim // 2, num_layers=1, bidirectional=True).cuda()
+        # self.lstm = nn.LSTM(self.embedding_dim, self.hidden_dim, num_layers=1).cuda()
+        self.lstm = nn.Linear(self.embedding_dim, self.hidden_dim).cuda()
         self.hidden2tag = nn.Linear(self.hidden_dim, len(self.label_to_ix)).cuda()
         self.hidden = self.init_hidden()
 
@@ -79,7 +88,10 @@ class BiLSTM(nn.Module):
                 sentence_idxs = [self.word_to_ix[w] for w in doc]
                 sentence_in = torch.tensor(sentence_idxs, dtype=torch.long).cuda()
 
-                target_idxs = [self.label_to_ix[label] for w in doc]
+                # target_idxs = [self.label_to_ix[label] for w in doc]
+                # targets = torch.tensor(target_idxs, dtype=torch.long).cuda()
+
+                target_idxs = [self.label_to_ix[label]]
                 targets = torch.tensor(target_idxs, dtype=torch.long).cuda()
 
                 label_scores = self(sentence_in)
