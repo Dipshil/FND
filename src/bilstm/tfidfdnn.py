@@ -6,12 +6,12 @@ import numpy as np
 import torch
 
 
-class DNN(nn.Module):
+class TFIDFDNN(nn.Module):
 
 
-    def __init__(self, embedding_dim, hidden_dim, lr):
+    def __init__(self, embedding_dim, hidden_dim, lr, corp):
 
-        super(DNN, self).__init__()
+        super(TFIDFDNN, self).__init__()
 
         self.hidden_dim = hidden_dim
         self.embedding_dim = embedding_dim
@@ -19,14 +19,22 @@ class DNN(nn.Module):
 
         self.word_to_ix = {}
         self.label_to_ix = {}
+        self.corp = corp
 
 
     def forward(self, sentence):
 
-        embeds = torch.mean(self.word_embeddings(sentence).cuda(), dim=0)
+        embeds = self.word_embeddings(sentence).cuda()
+        tokens = [self.ix_to_word[word.item()] for word in sentence]
+        scores = torch.tensor(self.corp.get_tf_idf_seq(tokens)).cuda()
+        for i in range(len(embeds)): embeds[i] *= scores[i]
+        embeds = torch.mean(embeds, dim=0)
+
         lin1_out = self.lin1(embeds.view(1, 1, -1)).cuda()
-        lin2_out = self.lin2(lin1_out.view(1, 1, -1)).cuda()
-        lin3_out = self.lin3(lin2_out.view(1, 1, -1)).cuda()
+        d1_out = self.drop(lin1_out)
+        lin2_out = self.lin2(d1_out.view(1, 1, -1)).cuda()
+        d2_out = self.drop(lin2_out)
+        lin3_out = self.lin3(d2_out.view(1, 1, -1)).cuda()
         lin4_out = self.lin4(lin3_out.view(1, 1, -1)).cuda()
         lin5_out = self.lin5(lin4_out.view(1, 1, -1)).cuda()
         label_space = self.hidden2tag(lin5_out.view(1, -1)).cuda()
@@ -52,6 +60,7 @@ class DNN(nn.Module):
         torch.nn.init.xavier_uniform_(self.lin5.weight)
         self.hidden2tag = nn.Linear(self.hidden_dim, len(self.label_to_ix)).cuda()
         torch.nn.init.xavier_uniform_(self.hidden2tag.weight)
+        self.drop = nn.Dropout(0.2)
         self.loss_function = nn.CrossEntropyLoss().cuda()
         self.optimizer = optim.Adagrad(self.parameters(), lr=self.lr)
 
@@ -78,7 +87,7 @@ class DNN(nn.Module):
         self.init(docs)
 
         for epoch in trange(epochs):
-            timestep = tqdm(docs, desc='loss')
+            timestep = tqdm(docs)
             for doc, label in timestep:
 
                 self.zero_grad()

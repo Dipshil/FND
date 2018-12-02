@@ -6,16 +6,16 @@ import numpy as np
 import torch
 
 
-class DNN(nn.Module):
+class PTRNDNN(nn.Module):
 
 
-    def __init__(self, embedding_dim, hidden_dim, lr):
+    def __init__(self, embedding_dim, hidden_dim, lr, pt):
+        super(PTRNDNN, self).__init__()
 
-        super(DNN, self).__init__()
-
-        self.hidden_dim = hidden_dim
         self.embedding_dim = embedding_dim
+        self.hidden_dim = hidden_dim
         self.lr = lr
+        self.pt = pt
 
         self.word_to_ix = {}
         self.label_to_ix = {}
@@ -23,8 +23,7 @@ class DNN(nn.Module):
 
     def forward(self, sentence):
 
-        embeds = torch.mean(self.word_embeddings(sentence).cuda(), dim=0)
-        lin1_out = self.lin1(embeds.view(1, 1, -1)).cuda()
+        lin1_out = self.lin1(sentence.view(1, 1, -1)).cuda()
         lin2_out = self.lin2(lin1_out.view(1, 1, -1)).cuda()
         lin3_out = self.lin3(lin2_out.view(1, 1, -1)).cuda()
         lin4_out = self.lin4(lin3_out.view(1, 1, -1)).cuda()
@@ -38,20 +37,12 @@ class DNN(nn.Module):
     def init(self, docs):
 
         self.init_vocab(docs)
-        self.word_embeddings = nn.Embedding(len(self.word_to_ix), self.embedding_dim).cuda()
-        torch.nn.init.xavier_uniform_(self.word_embeddings.weight)
         self.lin1 = nn.Linear(self.embedding_dim, self.hidden_dim).cuda()
-        torch.nn.init.xavier_uniform_(self.lin1.weight)
         self.lin2 = nn.Linear(self.hidden_dim, self.hidden_dim).cuda()
-        torch.nn.init.xavier_uniform_(self.lin2.weight)
         self.lin3 = nn.Linear(self.hidden_dim, self.hidden_dim).cuda()
-        torch.nn.init.xavier_uniform_(self.lin3.weight)
         self.lin4 = nn.Linear(self.hidden_dim, self.hidden_dim).cuda()
-        torch.nn.init.xavier_uniform_(self.lin4.weight)
         self.lin5 = nn.Linear(self.hidden_dim, self.hidden_dim).cuda()
-        torch.nn.init.xavier_uniform_(self.lin5.weight)
         self.hidden2tag = nn.Linear(self.hidden_dim, len(self.label_to_ix)).cuda()
-        torch.nn.init.xavier_uniform_(self.hidden2tag.weight)
         self.loss_function = nn.CrossEntropyLoss().cuda()
         self.optimizer = optim.Adagrad(self.parameters(), lr=self.lr)
 
@@ -85,6 +76,12 @@ class DNN(nn.Module):
 
                 sentence_idxs = [self.word_to_ix[w] for w in doc]
                 sentence_in = torch.tensor(sentence_idxs, dtype=torch.long).cuda()
+                print(sentence_in.view(1, 1, -1).size())
+
+                sentence_idxs = [self.pt[w] for w in doc if w in self.pt]
+                sentence_in = torch.tensor(sentence_idxs, dtype=torch.long).cuda()
+                print(sentence_in.view(1, 1, -1).size())
+                exit()
 
                 target_idxs = [self.label_to_ix[label]]
                 targets = torch.tensor(target_idxs, dtype=torch.long).cuda()
