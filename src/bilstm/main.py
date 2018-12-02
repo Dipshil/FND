@@ -1,4 +1,5 @@
 from preprocessing_utils import *
+from liwc_features import LIWC
 from bilstm import BiLSTM
 from paths import paths
 
@@ -22,11 +23,13 @@ def main():
     train = retrieve_docs(train_path)
     dev = retrieve_docs(dev_path)
 
-    model = BiLSTM(32, 32, 0.01)
-    acc = run_experiment(model, train, dev, 5)
+    liwc = LIWC()
 
-    print('Accuracy: %f' % (acc))
-    print(len(model.word_to_ix))
+    # model = BiLSTM(32, 32, 0.01)
+    # acc = run_experiment(model, train, dev, 5)
+
+    # print('Accuracy: %f' % (acc))
+    # print(len(model.word_to_ix))
 
 if __name__ == '__main__':
     main()
