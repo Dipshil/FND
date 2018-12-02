@@ -88,3 +88,18 @@ class LIWC:
         test_neg = self.neg_vectorize(paths['TEST'], paths['TEST_RES'])
 
         return train_neg, valid_neg, test_neg
+
+
+    def get_all_liwc_vectors(self):
+
+        train = self.all_vectorize(paths['TRAIN'], paths['TRAIN_RES'])
+        valid = self.all_vectorize(paths['VALID'], paths['VALID_RES'])
+        test = self.all_vectorize(paths['TEST'], paths['TEST_RES'])
+
+        return train, valid, test
+
+
+    def all_vectorize(self, corpus_path, liwc_path):
+
+        categories, cat_list = self.parse_liwc_results(liwc_path)
+        return self.vectorize(corpus_path, categories, cat_list)

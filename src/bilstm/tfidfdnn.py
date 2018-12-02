@@ -31,9 +31,9 @@ class TFIDFDNN(nn.Module):
         embeds = torch.mean(embeds, dim=0)
 
         lin1_out = self.lin1(embeds.view(1, 1, -1)).cuda()
-        d1_out = self.drop(lin1_out)
+        d1_out = self.drop(lin1_out).cuda()
         lin2_out = self.lin2(d1_out.view(1, 1, -1)).cuda()
-        d2_out = self.drop(lin2_out)
+        d2_out = self.drop(lin2_out).cuda()
         lin3_out = self.lin3(d2_out.view(1, 1, -1)).cuda()
         lin4_out = self.lin4(lin3_out.view(1, 1, -1)).cuda()
         lin5_out = self.lin5(lin4_out.view(1, 1, -1)).cuda()
