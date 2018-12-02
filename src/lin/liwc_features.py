@@ -11,6 +11,15 @@ class LIWC:
         self.tfidf_corp = TF_IDF_Corpus(
             ngram_limit=2, min_df=2, is_sublinear_tf=True)
 
+    def get_labels(self, file_path):
+        with open(file_path, 'r') as f:
+            labels = []
+            lines = f.readlines()
+            for line in lines:
+                line = line.strip().split("\t")
+                labels.append(line[1])
+        return labels
+
     def parse_liwc_results(self, file_path, gram=False, neg=False):
         categories = defaultdict(dict)
         with open(file_path, 'r') as f:
@@ -58,16 +67,12 @@ class LIWC:
 
         return self.vectorize(corpus_path, categories, cat_list)
 
-    def all_vectorize(self, corpus_path, liwc_path):
-        categories, cat_list = self.parse_liwc_results(liwc_path)
-        return self.vectorize(corpus_path, categories, cat_list)
-
     def get_tfidf_vectors(self):
         tfidf_train = self.tfidf_corp.tfidf_train_vectors
         tfidf_valid = self.tfidf_corp.tfidf_valid_vectors
         tfidf_test = self.tfidf_corp.tfidf_test_vectors
 
-        return tfidf_train, tfidf_valid, tfidf_valid
+        return tfidf_train, tfidf_valid, tfidf_test
 
     def get_gram_vectors(self):
         train_gram = self.gram_vectorize(TRAIN_PATH, TRAIN_RES_PATH)
@@ -89,3 +94,7 @@ class LIWC:
         test = self.all_vectorize(TEST_PATH, TEST_RES_PATH)
 
         return train, valid, test
+
+    def all_vectorize(self, corpus_path, liwc_path):
+        categories, cat_list = self.parse_liwc_results(liwc_path)
+        return self.vectorize(corpus_path, categories, cat_list)
