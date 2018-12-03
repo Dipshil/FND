@@ -1,14 +1,15 @@
-import numpy as np
-from scipy.stats import ttest_ind
-from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, f1_score
-from sklearn.svm import LinearSVC
+from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import LinearSVC
+from scipy.stats import ttest_ind
 from liwc_features import LIWC
+import numpy as np
 from paths import *
 
 
 class LinModel():
+
     def __init__(self):
         self.svm = LinearSVC(max_iter=10000)
         self.lr = LogisticRegression(multi_class='auto', solver='liblinear')
@@ -17,17 +18,15 @@ class LinModel():
 
 
     def classify(self):
-        train, valid, test = self.liwc.get_tfidf_vectors()
 
+        train, valid, test = self.liwc.get_tfidf_vectors()
         train2, valid2, test2 = self.liwc.get_all_liwc_vectors()
 
-        '''train_gram, valid_gram, _ = self.liwc.get_gram_vectors()
-        train_neg, valid_neg, _ = self.liwc.get_neg_vectors()'''
+        # train_gram, valid_gram, _ = self.liwc.get_gram_vectors()
+        # train_neg, valid_neg, _ = self.liwc.get_neg_vectors()
 
-        train_vector = np.concatenate(
-            [train.toarray(), train2], axis=1)
-        valid_vector = np.concatenate(
-            [valid.toarray(), valid2], axis=1)
+        train_vector = np.concatenate([train.toarray(), train2], axis=1)
+        valid_vector = np.concatenate([valid.toarray(), valid2], axis=1)
         test_vector = np.concatenate([test.toarray(), test2], axis=1)
 
         train_labels = self.liwc.get_labels(TRAIN_PATH)

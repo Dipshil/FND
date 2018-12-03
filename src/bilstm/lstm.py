@@ -6,31 +6,31 @@ import numpy as np
 import torch
 
 
-class BiLSTM(nn.Module):
+class LSTM(nn.Module):
 
 
-    def __init__(self, embedding_dim, hidden_dim, lr):
+    def __init__(self, embedding_dim, hidden_dim, lr, nl):
+        super(LSTM, self).__init__()
 
-        super(BiLSTM, self).__init__()
-
-        self.hidden_dim = hidden_dim
         self.embedding_dim = embedding_dim
-        self.word_to_ix = {}
+        self.hidden_dim = hidden_dim
         self.label_to_ix = {}
+        self.word_to_ix = {}
         self.lr = lr
+        self.nl = nl
 
 
     def init_hidden(self):
 
-        return (torch.zeros(2, 1, self.hidden_dim // 2).cuda(), torch.zeros(2, 1, self.hidden_dim // 2).cuda())
+        return (torch.zeros(self.nl, 1, self.hidden_dim // self.nl).cuda(), torch.zeros(self.nl, 1, self.hidden_dim // self.nl).cuda())
 
 
     def forward(self, sentence):
 
-        embeds = self.word_embeddings(sentence).cuda()
+        embeds = self.word_embeddings(sentence)
         lstm_out, self.hidden = self.lstm(embeds.view(len(sentence), 1, -1), self.hidden)
-        label_space = self.hidden2tag(lstm_out.view(len(sentence), -1)).cuda()
-        label_scores = F.log_softmax(label_space, dim=1).cuda()
+        label_space = self.hidden2tag(lstm_out.view(len(sentence), -1))
+        label_scores = F.log_softmax(label_space, dim=1)
 
         return label_scores
 
@@ -40,12 +40,12 @@ class BiLSTM(nn.Module):
         self.init_vocab(docs)
 
         self.word_embeddings = nn.Embedding(len(self.word_to_ix), self.embedding_dim).cuda()
-        self.lstm = nn.LSTM(self.embedding_dim, self.hidden_dim // 2, num_layers=1, bidirectional=True).cuda()
-        self.hidden2tag = nn.Linear(self.hidden_dim, len(self.label_to_ix)).cuda()
+        self.lstm = nn.LSTM(self.embedding_dim, self.hidden_dim // self.nl, num_layers=self.nl).cuda()
+        self.hidden2tag = nn.Linear(self.hidden_dim // self.nl, len(self.label_to_ix)).cuda()
         self.hidden = self.init_hidden()
 
         self.loss_function = nn.NLLLoss().cuda()
-        self.optimizer = optim.SGD(self.parameters(), lr=self.lr)
+        self.optimizer = optim.Adagrad(self.parameters(), lr=self.lr)
 
 
     def init_vocab(self, docs):

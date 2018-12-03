@@ -130,3 +130,30 @@ class PTRNTFIDFDNN(nn.Module):
             lix = np.argmax(label_scores[-1]).item()
 
             return self.ix_to_label[lix]
+
+
+    def transform(self, doc):
+
+        sentence_pt_idxs = [self.pt[w] for w in doc if w in self.pt]
+        sentence_pt_in = torch.tensor(sentence_pt_idxs, dtype=torch.float).cuda()
+        sentence_tfidf_idxs = [self.word_to_ix[w] for w in doc if w in self.word_to_ix]
+        sentence_tfidf_in = torch.tensor(sentence_tfidf_idxs, dtype=torch.long).cuda()
+
+        pt = sentence_pt_in
+        tfidf = sentence_tfidf_in
+
+        tokens = [self.ix_to_word[word.item()] for word in tfidf]
+        scores = torch.tensor(self.corp.get_tf_idf_seq(tokens)).cuda()
+
+        for i in range(len(pt)): pt[i] *= scores[i]
+        embeds = torch.mean(pt, dim=0).cuda()
+
+        return embeds.cpu().detach().numpy()
+
+        # lin1_out = self.lin1(embeds.view(1, 1, -1)).cuda()
+        # lin2_out = self.lin2(lin1_out.view(1, 1, -1)).cuda()
+        # lin3_out = self.lin3(lin2_out.view(1, 1, -1)).cuda()
+        # lin4_out = self.lin4(lin3_out.view(1, 1, -1)).cuda()
+        # lin5_out = self.lin5(lin4_out.view(1, 1, -1)).cpu().detach().numpy()[0][0]
+
+        # return lin5_out

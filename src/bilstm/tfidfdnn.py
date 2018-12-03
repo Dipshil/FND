@@ -60,7 +60,7 @@ class TFIDFDNN(nn.Module):
         torch.nn.init.xavier_uniform_(self.lin5.weight)
         self.hidden2tag = nn.Linear(self.hidden_dim, len(self.label_to_ix)).cuda()
         torch.nn.init.xavier_uniform_(self.hidden2tag.weight)
-        self.drop = nn.Dropout(0.2)
+        self.drop = nn.Dropout(p=0.2)
         self.loss_function = nn.CrossEntropyLoss().cuda()
         self.optimizer = optim.Adagrad(self.parameters(), lr=self.lr)
 
@@ -121,3 +121,25 @@ class TFIDFDNN(nn.Module):
             lix = np.argmax(label_scores[-1]).item()
 
             return self.ix_to_label[lix]
+
+    
+    def transform(self, doc):
+
+        sentence_idxs = [self.word_to_ix[w] for w in doc if w in self.word_to_ix]
+        sentence_in = torch.tensor(sentence_idxs, dtype=torch.long).cuda()
+        embeds = self.word_embeddings(sentence_in).cuda()
+
+        scores = torch.tensor(self.corp.get_tf_idf_seq(doc)).cuda()
+        for i in range(len(embeds)): embeds[i] *= scores[i]
+        embeds = torch.mean(embeds, dim=0)
+        return embeds.cpu().detach().numpy()
+
+        # lin1_out = self.lin1(embeds.view(1, 1, -1)).cuda()
+        # d1_out = self.drop(lin1_out).cuda()
+        # lin2_out = self.lin2(d1_out.view(1, 1, -1)).cuda()
+        # d2_out = self.drop(lin2_out).cuda()
+        # lin3_out = self.lin3(d2_out.view(1, 1, -1)).cuda()
+        # lin4_out = self.lin4(lin3_out.view(1, 1, -1)).cuda()
+        # lin5_out = self.lin5(lin4_out.view(1, 1, -1)).cpu().detach().numpy()[0][0]
+
+        # return lin5_out

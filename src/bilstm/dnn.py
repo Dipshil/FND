@@ -112,3 +112,18 @@ class DNN(nn.Module):
             lix = np.argmax(label_scores[-1]).item()
 
             return self.ix_to_label[lix]
+
+
+    def transform(self, doc):
+
+        sentence_idxs = [self.word_to_ix[w] for w in doc if w in self.word_to_ix]
+        sentence_in = torch.tensor(sentence_idxs, dtype=torch.long).cuda()
+        embeds = torch.mean(self.word_embeddings(sentence_in).cuda(), dim=0)
+        return embeds.cpu().detach().numpy()
+        # lin1_out = self.lin1(embeds.view(1, 1, -1)).cuda()
+        # lin2_out = self.lin2(lin1_out.view(1, 1, -1)).cuda()
+        # lin3_out = self.lin3(lin2_out.view(1, 1, -1)).cuda()
+        # lin4_out = self.lin4(lin3_out.view(1, 1, -1)).cuda()
+        # lin5_out = self.lin5(lin4_out.view(1, 1, -1)).cpu().detach().numpy()[0][0]
+
+        # return lin5_out
