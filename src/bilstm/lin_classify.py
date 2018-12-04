@@ -29,55 +29,41 @@ class LinModel():
         dev_docs, dev_labels = zip(*dev)
         test_docs, test_labels = zip(*test)
 
-        # self.svm.fit(train_docs, train_labels)
+        self.svm.fit(train_docs, train_labels)
         self.lr.fit(train_docs, train_labels)
         self.rfc.fit(train_docs, train_labels)
 
-        print("TRAINING")
-        # pred = self.svm.predict(train_docs)
-        # acc = accuracy_score(train_labels, pred)
-        # print(acc)
+        pred = self.svm.predict(train_docs)
+        svm_train_acc = accuracy_score(train_labels, pred)
 
         pred = self.lr.predict(train_docs)
-        acc = accuracy_score(train_labels, pred)
-        print(acc)
+        lr_train_acc = accuracy_score(train_labels, pred)
 
         pred = self.rfc.predict(train_docs)
-        acc = accuracy_score(train_labels, pred)
-        print(acc)
+        rfc_train_acc = accuracy_score(train_labels, pred)
 
-        print("VALIDATION")
-        # pred = self.svm.predict(dev_docs)
-        # acc = accuracy_score(dev_labels, pred)
-        # print(acc)
+        pred = self.svm.predict(dev_docs)
+        svm_dev_acc = accuracy_score(dev_labels, pred)
 
         pred = self.lr.predict(dev_docs)
-        acc = accuracy_score(dev_labels, pred)
-        print(acc)
+        lr_dev_acc = accuracy_score(dev_labels, pred)
 
         pred = self.rfc.predict(dev_docs)
-        acc = accuracy_score(dev_labels, pred)
-        print(acc)
+        rfc_dev_acc = accuracy_score(dev_labels, pred)
 
-        print("TESTING")
-        # pred_svm = self.svm.predict(test_docs)
-        # acc = accuracy_score(test_labels, pred_svm)
-        # print(acc)
+        pred_svm = self.svm.predict(test_docs)
+        svm_test_acc = accuracy_score(test_labels, pred_svm)
 
         pred = self.lr.predict(test_docs)
-        acc = accuracy_score(test_labels, pred)
-        print(acc)
+        lr_test_acc = accuracy_score(test_labels, pred)
 
         pred = self.rfc.predict(test_docs)
-        acc = accuracy_score(test_labels, pred)
-        print(acc)
+        rfc_test_acc = accuracy_score(test_labels, pred)
 
-        # labels = set(train_labels)
-        # label_ind = {label: i for i, label in enumerate(labels)}
-        # pred_svm = list(map(lambda x: label_ind[x], pred_svm))
-        # pred_lr = list(map(lambda x: label_ind[x], pred_lr))
-        # print(ttest_ind(pred_svm, pred_lr))
-
+        with open('./out.csv', 'a') as a:
+            a.write('%s,%f,%f,%f\n' % ('SVM', svm_train_acc, svm_dev_acc, svm_test_acc))
+            a.write('%s,%f,%f,%f\n' % ('LR', lr_train_acc, lr_dev_acc, lr_test_acc))
+            a.write('%s,%f,%f,%f\n' % ('RFC', rfc_train_acc, rfc_dev_acc, rfc_test_acc))
 
 if __name__ == "__main__":
     model = LinModel()

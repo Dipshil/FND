@@ -66,49 +66,54 @@ def load_vectors(fname, lim=None):
 
 def main():
 
-    train_path, dev_path, test_path = paths['TRAIN'], paths['VALID'], paths['TEST']
+    train_path, dev_path, test_path, out_path = paths['TRAIN'], paths['VALID'], paths['TEST'], './out.csv'
     train, dev, test = retrieve_docs(train_path), retrieve_docs(dev_path), retrieve_docs(test_path)
+
+    ##### TRAIN / TEST MODELS #####
+
+    with open(out_path, 'w') as w: w.write('Model,Train,Dev,Test\n')
+
+    model, name = LSTM(128, 128, 0.005, 5), 'LSTM'
+    train_acc, dev_acc, test_acc = run_experiment(model, train, dev, test, 1)
+    with open(out_path, 'a') as w: w.write('%s,%f,%f,%f\n' % (name, train_acc, dev_acc, test_acc))
+
+    model, name = BiLSTM(128, 128, 0.005), 'Bidirectional LSTM'
+    train_acc, dev_acc, test_acc = run_experiment(model, train, dev, test, 1)
+    with open(out_path, 'a') as w: w.write('%s,%f,%f,%f\n' % (name, train_acc, dev_acc, test_acc))
 
     liwc = LIWC()
     train_all, dev_all, test_all = liwc.get_all_liwc_vectors()
-
     for idx in range(len(train)): train[idx] = (train[idx][0] + ['ALL_%s_%s'  % (str(ix), str(freq)) for ix, freq in enumerate(train_all[idx])], train[idx][1])
     for idx in range(len(dev)): dev[idx] = (dev[idx][0] + ['ALL_%s_%s' % (str(ix), str(freq)) for ix, freq in enumerate(dev_all[idx])], dev[idx][1])
     for idx in range(len(test)): test[idx] = (test[idx][0] + ['ALL_%s_%s' % (str(ix), str(freq)) for ix, freq in enumerate(test_all[idx])], test[idx][1])
-
-    # ##### TRAIN / TEST MODELS #####
-
-    # model = DNN(64, 64, 0.005)
-    # train_acc, dev_acc, test_acc = run_experiment(model, train, dev, test, 1)
-    # print('Train Accuracy: %f\tDev Accuracy %f\tTest Accuracy %f' % (train_acc, dev_acc, test_acc))
-
-    # tcorp = TFIDFCorpus(train)
-    # model = TFIDFDNN(128, 128, 0.005, tcorp)
-    # train_acc, dev_acc, test_acc = run_experiment(model, train, dev, test, 2)
-    # print('Train Accuracy: %f\tDev Accuracy %f\tTest Accuracy %f' % (train_acc, dev_acc, test_acc))
-
-    # fast_text = load_vectors(paths['FAST_TEXT'])
-    # model = PTRNDNN(300, 128, 0.005, fast_text)
-    # train_acc, dev_acc, test_acc = run_experiment(model, train, dev, test, 1)
-    # print('Train Accuracy: %f\tDev Accuracy %f\tTest Accuracy %f' % (train_acc, dev_acc, test_acc))
-
-    # tcorp = TFIDFCorpus(train)
-    # fast_text = load_vectors(paths['FAST_TEXT'])
-    # model = PTRNTFIDFDNN(300, 128, 0.005, fast_text, tcorp)
-    # train_acc, dev_acc, test_acc = run_experiment(model, train, dev, test, 1)
-    # print('Train Accuracy: %f\tDev Accuracy %f\tTest Accuracy %f' % (train_acc, dev_acc, test_acc))
-
-    # model = LSTM(128, 128, 0.005, 5)
-    # train_acc, dev_acc, test_acc = run_experiment(model, train, dev, test, 1)
-    # print('Train Accuracy: %f\tDev Accuracy %f\tTest Accuracy %f' % (train_acc, dev_acc, test_acc))
-
-    # model = BiLSTM(128, 128, 0.005)
-    # train_acc, dev_acc, test_acc = run_experiment(model, train, dev, test, 1)
-    # print('Train Accuracy: %f\tDev Accuracy %f\tTest Accuracy %f' % (train_acc, dev_acc, test_acc))
-
-    ##### TRAIN MODEL AND TRANSFORM DATA #####
-
+    fast_text = load_vectors(paths['FAST_TEXT'])
     tcorp = TFIDFCorpus(train)
+
+    model, name = DNN(64, 64, 0.005), 'ANN Averaged Embeddings'
+    train_acc, dev_acc, test_acc = run_experiment(model, train, dev, test, 1)
+    with open(out_path, 'a') as w: w.write('%s,%f,%f,%f\n' % (name, train_acc, dev_acc, test_acc))
+
+    model, name = TFIDFDNN(128, 128, 0.005, tcorp), 'ANN TF-IDF Weighted Embeddings'
+    train_acc, dev_acc, test_acc = run_experiment(model, train, dev, test, 1)
+    with open(out_path, 'a') as w: w.write('%s,%f,%f,%f\n' % (name, train_acc, dev_acc, test_acc))
+
+    model, name = PTRNDNN(300, 128, 0.005, fast_text), 'ANN Pretrained Embeddings'
+    train_acc, dev_acc, test_acc = run_experiment(model, train, dev, test, 1)
+    with open(out_path, 'a') as w: w.write('%s,%f,%f,%f\n' % (name, train_acc, dev_acc, test_acc))
+
+    model, name = PTRNTFIDFDNN(300, 128, 0.005, fast_text, tcorp), 'ANN Pretrained TF-IDF Weighted Embeddings'
+    train_acc, dev_acc, test_acc = run_experiment(model, train, dev, test, 1)
+    with open(out_path, 'a') as w: w.write('%s,%f,%f,%f\n' % (name, train_acc, dev_acc, test_acc))
+
+    ##### TRAIN MODEL AND GENERATE EMBEDDINGS FOR LR/SVM/RFR #####
+
+    liwc = LIWC()
+    train_all, dev_all, test_all = liwc.get_all_liwc_vectors()
+    for idx in range(len(train)): train[idx] = (train[idx][0] + ['ALL_%s_%s'  % (str(ix), str(freq)) for ix, freq in enumerate(train_all[idx])], train[idx][1])
+    for idx in range(len(dev)): dev[idx] = (dev[idx][0] + ['ALL_%s_%s' % (str(ix), str(freq)) for ix, freq in enumerate(dev_all[idx])], dev[idx][1])
+    for idx in range(len(test)): test[idx] = (test[idx][0] + ['ALL_%s_%s' % (str(ix), str(freq)) for ix, freq in enumerate(test_all[idx])], test[idx][1])
+    tcorp = TFIDFCorpus(train)
+
     model = TFIDFDNN(128, 128, 0.005, tcorp)
     train_acc, dev_acc, test_acc, transform_train, transform_dev, transform_test = transform_data(model, train, dev, test, 1)
     print('Train Accuracy: %f\tDev Accuracy %f\tTest Accuracy %f' % (train_acc, dev_acc, test_acc))

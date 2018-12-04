@@ -60,7 +60,7 @@ class TFIDFDNN(nn.Module):
         torch.nn.init.xavier_uniform_(self.lin5.weight)
         self.hidden2tag = nn.Linear(self.hidden_dim, len(self.label_to_ix)).cuda()
         torch.nn.init.xavier_uniform_(self.hidden2tag.weight)
-        self.drop = nn.Dropout(p=0.2)
+        self.drop = nn.Dropout(p=0.4)
         self.loss_function = nn.CrossEntropyLoss().cuda()
         self.optimizer = optim.Adagrad(self.parameters(), lr=self.lr)
 
@@ -88,6 +88,8 @@ class TFIDFDNN(nn.Module):
 
         for epoch in trange(epochs):
             timestep = tqdm(docs)
+
+            count = 0
             for doc, label in timestep:
 
                 self.zero_grad()
@@ -102,11 +104,13 @@ class TFIDFDNN(nn.Module):
 
                 loss = self.loss_function(label_scores, targets)
 
-                timestep.set_description('loss=%.4f' % loss)
-                timestep.refresh()
+                if count % 10 == 0:
+                    timestep.set_description('loss=%.6f' % loss)
+                    timestep.refresh()
 
                 loss.backward()
                 self.optimizer.step()
+                count += 1
 
         print()
 
@@ -132,6 +136,7 @@ class TFIDFDNN(nn.Module):
         scores = torch.tensor(self.corp.get_tf_idf_seq(doc)).cuda()
         for i in range(len(embeds)): embeds[i] *= scores[i]
         embeds = torch.mean(embeds, dim=0)
+
         return embeds.cpu().detach().numpy()
 
         # lin1_out = self.lin1(embeds.view(1, 1, -1)).cuda()
