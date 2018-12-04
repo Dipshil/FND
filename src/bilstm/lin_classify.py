@@ -14,8 +14,8 @@ class LinModel():
     def __init__(self):
 
         self.svm = LinearSVC(max_iter=10000)
-        self.lr = LogisticRegression(multi_class='auto', solver='liblinear')
-        self.rfc = RandomForestClassifier(n_estimators=100)
+        self.lr = LogisticRegression(multi_class='ovr', solver='liblinear')
+        self.rfc = RandomForestClassifier(n_estimators=100, n_jobs=-1)
         self.liwc = LIWC()
 
 
@@ -29,48 +29,48 @@ class LinModel():
         dev_docs, dev_labels = zip(*dev)
         test_docs, test_labels = zip(*test)
 
-        self.svm.fit(train_docs, train_labels)
-        # self.lr.fit(train_docs, train_labels)
-        # self.rfc.fit(train_docs, train_labels)
+        # self.svm.fit(train_docs, train_labels)
+        self.lr.fit(train_docs, train_labels)
+        self.rfc.fit(train_docs, train_labels)
 
-        print("TRAINING\n")
-        pred = self.svm.predict(train_docs)
+        print("TRAINING")
+        # pred = self.svm.predict(train_docs)
+        # acc = accuracy_score(train_labels, pred)
+        # print(acc)
+
+        pred = self.lr.predict(train_docs)
         acc = accuracy_score(train_labels, pred)
         print(acc)
 
-        # pred = self.lr.predict(train_docs)
-        # acc = accuracy_score(train_labels, pred)
+        pred = self.rfc.predict(train_docs)
+        acc = accuracy_score(train_labels, pred)
+        print(acc)
+
+        print("VALIDATION")
+        # pred = self.svm.predict(dev_docs)
+        # acc = accuracy_score(dev_labels, pred)
         # print(acc)
 
-        # pred = self.rfc.predict(train_docs)
-        # acc = accuracy_score(train_labels, pred)
-        # print(acc)
-
-        print("VALIDATION\n")
-        pred = self.svm.predict(dev_docs)
+        pred = self.lr.predict(dev_docs)
         acc = accuracy_score(dev_labels, pred)
         print(acc)
 
-        # pred = self.lr.predict(dev_docs)
-        # acc = accuracy_score(dev_labels, pred)
-        # print(acc)
-
-        # pred = self.rfc.predict(dev_docs)
-        # acc = accuracy_score(dev_labels, pred)
-        # print(acc)
-
-        print("\nTESTING\n")
-        pred_svm = self.svm.predict(test_docs)
-        acc = accuracy_score(test_labels, pred_svm)
+        pred = self.rfc.predict(dev_docs)
+        acc = accuracy_score(dev_labels, pred)
         print(acc)
 
-        # pred = self.lr.predict(test_docs)
-        # acc = accuracy_score(test_labels, pred)
+        print("TESTING")
+        # pred_svm = self.svm.predict(test_docs)
+        # acc = accuracy_score(test_labels, pred_svm)
         # print(acc)
 
-        # pred = self.rfc.predict(test_docs)
-        # acc = accuracy_score(test_labels, pred)
-        # print(acc)
+        pred = self.lr.predict(test_docs)
+        acc = accuracy_score(test_labels, pred)
+        print(acc)
+
+        pred = self.rfc.predict(test_docs)
+        acc = accuracy_score(test_labels, pred)
+        print(acc)
 
         # labels = set(train_labels)
         # label_ind = {label: i for i, label in enumerate(labels)}

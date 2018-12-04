@@ -16,13 +16,13 @@ import io
 
 def transform_data(model, train, dev, test, epochs):
 
-    model.train(train, epochs)
+    train_acc, dev_acc, test_acc = run_experiment(model, train, dev, test, epochs)
 
     transform_train = [(model.transform(doc), label) for doc, label in train]
     transform_dev = [(model.transform(doc), label) for doc, label in dev]
     transform_test = [(model.transform(doc), label) for doc, label in test]
 
-    return transform_train, transform_dev, transform_test
+    return train_acc, dev_acc, test_acc, transform_train, transform_dev, transform_test
 
 
 def run_experiment(model, train, dev, test, epochs):
@@ -76,13 +76,15 @@ def main():
     for idx in range(len(dev)): dev[idx] = (dev[idx][0] + ['ALL_%s_%s' % (str(ix), str(freq)) for ix, freq in enumerate(dev_all[idx])], dev[idx][1])
     for idx in range(len(test)): test[idx] = (test[idx][0] + ['ALL_%s_%s' % (str(ix), str(freq)) for ix, freq in enumerate(test_all[idx])], test[idx][1])
 
+    # ##### TRAIN / TEST MODELS #####
+
     # model = DNN(64, 64, 0.005)
     # train_acc, dev_acc, test_acc = run_experiment(model, train, dev, test, 1)
     # print('Train Accuracy: %f\tDev Accuracy %f\tTest Accuracy %f' % (train_acc, dev_acc, test_acc))
 
     # tcorp = TFIDFCorpus(train)
     # model = TFIDFDNN(128, 128, 0.005, tcorp)
-    # train_acc, dev_acc, test_acc = run_experiment(model, train, dev, test, 1)
+    # train_acc, dev_acc, test_acc = run_experiment(model, train, dev, test, 2)
     # print('Train Accuracy: %f\tDev Accuracy %f\tTest Accuracy %f' % (train_acc, dev_acc, test_acc))
 
     # fast_text = load_vectors(paths['FAST_TEXT'])
@@ -104,10 +106,12 @@ def main():
     # train_acc, dev_acc, test_acc = run_experiment(model, train, dev, test, 1)
     # print('Train Accuracy: %f\tDev Accuracy %f\tTest Accuracy %f' % (train_acc, dev_acc, test_acc))
 
+    ##### TRAIN MODEL AND TRANSFORM DATA #####
+
     tcorp = TFIDFCorpus(train)
-    fast_text = load_vectors(paths['FAST_TEXT'])
-    model = PTRNTFIDFDNN(300, 128, 0.005, fast_text, tcorp)
-    transform_train, transform_dev, transform_test = transform_data(model, train, dev, test, 1)
+    model = TFIDFDNN(128, 128, 0.005, tcorp)
+    train_acc, dev_acc, test_acc, transform_train, transform_dev, transform_test = transform_data(model, train, dev, test, 1)
+    print('Train Accuracy: %f\tDev Accuracy %f\tTest Accuracy %f' % (train_acc, dev_acc, test_acc))
 
     with open('transform_train.pickle', 'wb') as w: pickle.dump(transform_train, w)
     with open('transform_dev.pickle', 'wb') as w: pickle.dump(transform_dev, w)
