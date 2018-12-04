@@ -98,3 +98,23 @@ class LIWC:
     def all_vectorize(self, corpus_path, liwc_path):
         categories, cat_list = self.parse_liwc_results(liwc_path)
         return self.vectorize(corpus_path, categories, cat_list)
+
+    def get_deep_tfidf_vectors(self):
+        train_vectors, valid_vectors, test_vectors = [], [], []
+        with open(TRAIN_DEEP_PATH, 'r') as f:
+            next(f)
+            for line in f:
+                line = line.strip().split(",")
+                train_vectors.append(np.array(list(map(float, line))))
+        with open(VALID_DEEP_PATH, 'r') as f:
+            next(f)
+            for line in f:
+                line = line.strip().split(",")
+                valid_vectors.append(np.array(list(map(float, line))))
+        with open(TEST_DEEP_PATH, 'r') as f:
+            next(f)
+            for line in f:
+                line = line.strip().split(",")
+                test_vectors.append(np.array(list(map(float, line))))
+
+        return np.array(train_vectors), np.array(valid_vectors), np.array(test_vectors)
