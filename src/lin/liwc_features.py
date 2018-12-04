@@ -11,6 +11,8 @@ class LIWC:
         self.tfidf_corp = TF_IDF_Corpus(
             ngram_limit=2, min_df=2, is_sublinear_tf=True)
 
+        self.cat_list = []
+
     def get_labels(self, file_path):
         with open(file_path, 'r') as f:
             labels = []
@@ -97,6 +99,7 @@ class LIWC:
 
     def all_vectorize(self, corpus_path, liwc_path):
         categories, cat_list = self.parse_liwc_results(liwc_path)
+        self.cat_list = cat_list
         return self.vectorize(corpus_path, categories, cat_list)
 
     def get_deep_tfidf_vectors(self):
