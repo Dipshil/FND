@@ -12,7 +12,7 @@ class TF_IDF_Corpus:
         self.test_data, self.test_labels = self.read_data(TEST_PATH)
 
         self.vectorizer = TfidfVectorizer(ngram_range=(
-            1, ngram_limit), min_df=min_df, sublinear_tf=is_sublinear_tf)
+            1, ngram_limit), min_df=min_df, sublinear_tf=is_sublinear_tf, max_features=1000)
 
         self.tfidf_train_vectors = self.vectorizer.fit_transform(
             self.train_data)
